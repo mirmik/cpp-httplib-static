@@ -267,6 +267,48 @@ inline const unsigned char *ASN1_STRING_get0_data(const ASN1_STRING *asn1) {
 #include <brotli/encode.h>
 #endif
 
+#define GETADDRINODEBUG 1
+
+int getaddrinfo_static(const char * node,
+                       const char * service,
+                       const struct addrinfo * hints,
+                       struct addrinfo ** res) 
+{
+#ifdef GETADDRINODEBUG
+  printf("getaddrinfo_static\n");
+  printf("node %s\n", node);
+  printf("service %s\n", service);
+  printf("hints.ai_family %d\n", hints->ai_family);
+  printf("hints.ai_socktype %d\n", hints->ai_socktype);
+  printf("hints.ai_protocol %d\n", hints->ai_protocol);
+  printf("hints.ai_flags %d\n", hints->ai_flags);
+  printf("hints.ai_addrlen %d\n", hints->ai_addrlen);
+  printf("hints.ai_canonname %s\n", hints->ai_canonname);
+  printf("hints.ai_addr %p\n", hints->ai_addr);
+  printf("hints.ai_next %p\n", hints->ai_next);
+  fflush(stdout);
+#endif
+
+  struct addrinfo * result = (struct addrinfo *)malloc(sizeof(struct addrinfo));
+  memset(result, 0, sizeof(struct addrinfo));
+
+  result->ai_family = hints->ai_family;
+  result->ai_socktype = hints->ai_socktype;
+  result->ai_protocol = hints->ai_protocol;
+  result->ai_flags = hints->ai_flags;
+  result->ai_canonname = hints->ai_canonname;
+  result->ai_addr = (struct sockaddr *)malloc(hints->ai_addrlen);
+  result->ai_addrlen = sizeof(struct sockaddr_in);
+  result->ai_next = NULL;
+
+  struct sockaddr_in * addr = (struct sockaddr_in *)result->ai_addr; 
+  addr->sin_family = AF_INET;
+  addr->sin_port = htons(atoi(service));
+  addr->sin_addr.s_addr = inet_addr(node);
+  *res = result;
+  return 0;
+}
+
 /*
  * Declaration
  */
@@ -2561,7 +2603,7 @@ socket_t create_socket(const std::string &host, const std::string &ip, int port,
 
   if (!ip.empty()) {
     node = ip.c_str();
-    // Ask getaddrinfo to convert IP in c-string to address
+    // Ask getaddrinfo_static to convert IP in c-string to address
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_NUMERICHOST;
   } else {
@@ -2572,7 +2614,7 @@ socket_t create_socket(const std::string &host, const std::string &ip, int port,
 
   auto service = std::to_string(port);
 
-  if (getaddrinfo(node, service.c_str(), &hints, &result)) {
+  if (getaddrinfo_static(node, service.c_str(), &hints, &result)) {
 #if defined __linux__ && !defined __ANDROID__
     res_init();
 #endif
@@ -2666,7 +2708,7 @@ inline bool bind_ip_address(socket_t sock, const std::string &host) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = 0;
 
-  if (getaddrinfo(host.c_str(), "0", &hints, &result)) { return false; }
+  if (getaddrinfo_static(host.c_str(), "0", &hints, &result)) { return false; }
 
   auto ret = false;
   for (auto rp = result; rp; rp = rp->ai_next) {
@@ -4408,7 +4450,7 @@ inline void hosted_at(const std::string &hostname,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = 0;
 
-  if (getaddrinfo(hostname.c_str(), nullptr, &hints, &result)) {
+  if (getaddrinfo_static(hostname.c_str(), nullptr, &hints, &result)) {
 #if defined __linux__ && !defined __ANDROID__
     res_init();
 #endif
