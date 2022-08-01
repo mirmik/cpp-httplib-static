@@ -1,3 +1,6 @@
+# Fork 
+It is fork of yhirose/cpp-httplib repo. The `getaddrinfo` function used by the library causes problems with static builds. Replaced `getaddrinfo` with a simplified `getaddrinfo_static` version that mimics how it works for simple addresses. Suitable for use with a reverse proxy. 
+
 cpp-httplib
 ===========
 
