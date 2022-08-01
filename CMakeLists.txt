@@ -13,11 +13,11 @@
 
 	-------------------------------------------------------------------------------
 
-	After installation with Cmake, a find_package(httplib) is available.
-	This creates a httplib::httplib target (if found).
+	After installation with Cmake, a find_package(httplib_static) is available.
+	This creates a httplib_static::httplib_static target (if found).
 	It can be linked like so:
 
-	target_link_libraries(your_exe httplib::httplib)
+	target_link_libraries(your_exe httplib_static::httplib_static)
 
 	The following will build & install for later use.
 
@@ -37,13 +37,13 @@
 
 	-------------------------------------------------------------------------------
 
-	These variables are available after you run find_package(httplib)
-	* HTTPLIB_HEADER_PATH - this is the full path to the installed header (e.g. /usr/include/httplib.h).
+	These variables are available after you run find_package(httplib_static)
+	* HTTPLIB_HEADER_PATH - this is the full path to the installed header (e.g. /usr/include/httplib_static.h).
 	* HTTPLIB_IS_USING_OPENSSL - a bool for if OpenSSL support is enabled.
 	* HTTPLIB_IS_USING_ZLIB - a bool for if ZLIB support is enabled.
 	* HTTPLIB_IS_USING_BROTLI - a bool for if Brotli support is enabled.
 	* HTTPLIB_IS_COMPILED - a bool for if the library is compiled, or otherwise header-only.
-	* HTTPLIB_INCLUDE_DIR - the root path to httplib's header (e.g. /usr/include).
+	* HTTPLIB_INCLUDE_DIR - the root path to httplib_static's header (e.g. /usr/include).
 	* HTTPLIB_LIBRARY - the full path to the library if compiled (e.g. /usr/lib/libhttplib.so).
 	* httplib_VERSION or HTTPLIB_VERSION - the project's version string.
 	* HTTPLIB_FOUND - a bool for if the target was found.
@@ -51,7 +51,7 @@
 	Want to use precompiled headers (Cmake feature since v3.16)?
 	It's as simple as doing the following (before linking):
 
-	target_precompile_headers(httplib::httplib INTERFACE "${HTTPLIB_HEADER_PATH}")
+	target_precompile_headers(httplib_static::httplib_static INTERFACE "${HTTPLIB_HEADER_PATH}")
 
 	-------------------------------------------------------------------------------
 
@@ -63,13 +63,13 @@ cmake_minimum_required(VERSION 3.14.0 FATAL_ERROR)
 # Get the CPPHTTPLIB_VERSION value and use it as a version
 # This gets the string with the CPPHTTPLIB_VERSION value from the header.
 # This is so the maintainer doesn't actually need to update this manually.
-file(STRINGS httplib.h _raw_version_string REGEX "CPPHTTPLIB_VERSION \"([0-9]+\\.[0-9]+\\.[0-9]+)\"")
+file(STRINGS httplib_static.h _raw_version_string REGEX "CPPHTTPLIB_VERSION \"([0-9]+\\.[0-9]+\\.[0-9]+)\"")
 
 # Needed since git tags have "v" prefixing them.
 # Also used if the fallback to user agent string is being used.
 string(REGEX MATCH "([0-9]+\\.?)+" _httplib_version "${_raw_version_string}")
 
-project(httplib VERSION ${_httplib_version} LANGUAGES CXX)
+project(httplib_static VERSION ${_httplib_version} LANGUAGES CXX)
 
 # Change as needed to set an OpenSSL minimum version.
 # This is used in the installed Cmake config file.
@@ -146,7 +146,7 @@ if(HTTPLIB_COMPILE)
 		COPYONLY
 	)
 	# Needs to be in the same dir as the python script
-	configure_file(httplib.h "${CMAKE_CURRENT_BINARY_DIR}/httplib.h"
+	configure_file(httplib_static.h "${CMAKE_CURRENT_BINARY_DIR}/httplib_static.h"
 		COPYONLY
 	)
 
@@ -161,17 +161,17 @@ if(HTTPLIB_COMPILE)
 		ERROR_VARIABLE _httplib_split_error
 	)
 	if(_httplib_split_error)
-		message(FATAL_ERROR "Failed when trying to split cpp-httplib with the Python script.\n${_httplib_split_error}")
+		message(FATAL_ERROR "Failed when trying to split cpp-httplib_static with the Python script.\n${_httplib_split_error}")
 	endif()
 
 	# split.py puts output in "out"
 	set(_httplib_build_includedir "${CMAKE_CURRENT_BINARY_DIR}/out")
 	# This will automatically be either static or shared based on the value of BUILD_SHARED_LIBS
-	add_library(${PROJECT_NAME} "${_httplib_build_includedir}/httplib.cc")
+	add_library(${PROJECT_NAME} "${_httplib_build_includedir}/httplib_static.cc")
 	target_sources(${PROJECT_NAME}
 		PUBLIC
-			$<BUILD_INTERFACE:${_httplib_build_includedir}/httplib.h>
-			$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/httplib.h>
+			$<BUILD_INTERFACE:${_httplib_build_includedir}/httplib_static.h>
+			$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/httplib_static.h>
 	)
 	set_target_properties(${PROJECT_NAME}
 		PROPERTIES
@@ -184,7 +184,7 @@ else()
 	add_library(${PROJECT_NAME} INTERFACE)
 	set(_httplib_build_includedir "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
-# Lets you address the target with httplib::httplib
+# Lets you address the target with httplib_static::httplib_static
 # Only useful if building in-tree, versus using it from an installation.
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
@@ -245,13 +245,13 @@ configure_package_config_file("${PROJECT_NAME}Config.cmake.in"
 
 if(HTTPLIB_COMPILE)
 	write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
-		# Example: if you find_package(httplib 0.5.4)
+		# Example: if you find_package(httplib_static 0.5.4)
 		# then anything >= 0.5 and <= 1.0 is accepted
 		COMPATIBILITY SameMajorVersion
 	)
 else()
 	write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
-		# Example: if you find_package(httplib 0.5.4)
+		# Example: if you find_package(httplib_static 0.5.4)
 		# then anything >= 0.5 and <= 1.0 is accepted
 		COMPATIBILITY SameMajorVersion
 		# Tells Cmake that it's a header-only lib
@@ -267,7 +267,7 @@ install(TARGETS ${PROJECT_NAME}
 	EXPORT httplibTargets
 )
 
-install(FILES "${_httplib_build_includedir}/httplib.h" TYPE INCLUDE)
+install(FILES "${_httplib_build_includedir}/httplib_static.h" TYPE INCLUDE)
 
 install(FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -280,8 +280,8 @@ install(FILES
 
 # NOTE: This path changes depending on if it's on Windows or Linux
 install(EXPORT httplibTargets
-	# Puts the targets into the httplib namespace
-	# So this makes httplib::httplib linkable after doing find_package(httplib)
+	# Puts the targets into the httplib_static namespace
+	# So this makes httplib_static::httplib_static linkable after doing find_package(httplib_static)
 	NAMESPACE ${PROJECT_NAME}::
 	DESTINATION ${_TARGET_INSTALL_CMAKEDIR}
 )
