@@ -292,9 +292,9 @@ int getaddrinfo_static(const char * node,
   struct addrinfo * result = (struct addrinfo *)malloc(sizeof(struct addrinfo));
   memset(result, 0, sizeof(struct addrinfo));
 
-  result->ai_family = hints->ai_family;
-  result->ai_socktype = hints->ai_socktype;
-  result->ai_protocol = hints->ai_protocol;
+  result->ai_family = AF_INET;
+  result->ai_socktype = SOCK_STREAM;
+  result->ai_protocol = IPPROTO_TCP;
   result->ai_flags = hints->ai_flags;
   result->ai_canonname = hints->ai_canonname;
   result->ai_addr = (struct sockaddr *)malloc(hints->ai_addrlen);
@@ -2592,6 +2592,7 @@ socket_t create_socket(const std::string &host, const std::string &ip, int port,
                        int address_family, int socket_flags, bool tcp_nodelay,
                        SocketOptions socket_options,
                        BindOrConnect bind_or_connect) {
+  printf("create_socket\n");
   // Get address info
   const char *node = nullptr;
   struct addrinfo hints;
@@ -2647,7 +2648,10 @@ socket_t create_socket(const std::string &host, const std::string &ip, int port,
 #else
     auto sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 #endif
-    if (sock == INVALID_SOCKET) { continue; }
+    if (sock == INVALID_SOCKET) { 
+      perror("socket");
+      continue; 
+    }
 
 #ifndef _WIN32
     if (fcntl(sock, F_SETFD, FD_CLOEXEC) == -1) { continue; }
@@ -2700,6 +2704,7 @@ inline bool is_connection_error() {
 }
 
 inline bool bind_ip_address(socket_t sock, const std::string &host) {
+  printf("bind_ip_address\n");
   struct addrinfo hints;
   struct addrinfo *result;
 
@@ -2715,6 +2720,7 @@ inline bool bind_ip_address(socket_t sock, const std::string &host) {
     const auto &ai = *rp;
     if (!::bind(sock, ai.ai_addr, static_cast<socklen_t>(ai.ai_addrlen))) {
       ret = true;
+      perror("httplib bind");
       break;
     }
   }
