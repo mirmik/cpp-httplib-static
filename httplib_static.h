@@ -267,7 +267,7 @@ inline const unsigned char *ASN1_STRING_get0_data(const ASN1_STRING *asn1) {
 #include <brotli/encode.h>
 #endif
 
-#define GETADDRINODEBUG 1
+#define GETADDRINODEBUG 0
 
 int getaddrinfo_static(const char * node,
                        const char * service,
