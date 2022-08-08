@@ -274,7 +274,7 @@ int getaddrinfo_static(const char * node,
                        const struct addrinfo * hints,
                        struct addrinfo ** res) 
 {
-#ifdef GETADDRINODEBUG
+#if GETADDRINODEBUG
   printf("getaddrinfo_static\n");
   printf("node %s\n", node);
   printf("service %s\n", service);
