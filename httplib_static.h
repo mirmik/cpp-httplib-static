@@ -3269,8 +3269,8 @@ namespace httplib
                                SocketOptions socket_options,
                                BindOrConnect bind_or_connect)
         {
-            printf("create_socket\n");
-            // Get address info
+            // printf("create_socket\n");
+            //  Get address info
             const char *node = nullptr;
             struct addrinfo hints;
             struct addrinfo *result;
